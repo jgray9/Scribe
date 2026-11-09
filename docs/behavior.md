@@ -9,7 +9,7 @@ This document is the **source of truth**. If any other doc disagrees with it, th
 | **timer time** | The timer's current position in milliseconds. It is shown rounded down to whole seconds. |
 | **high-water mark** (`max`) | The largest timer time ever reached. It never decreases. |
 | **empty line** | A line with zero characters. Whitespace-only lines are **not** empty. |
-| **stamp** | A pair `(t, seq)`. `t` is the timer time in ms when the line became non-empty. `seq` is a global counter that increases each time a stamp is given out. Stamps are shown as `formatTime(t)`. |
+| **stamp** | A pair `(t, seq)`. `t` is the timer time when the line became non-empty, **rounded down to a whole second** and stored as ms (a multiple of 1000). `seq` is a global counter that increases each time a stamp is given out. Stamps are shown as `formatTime(t)`. |
 | **active line** | The line holding the caret, or the selection end, while the notepad is focused. There is none when it is not focused. |
 | **leaving a line** | The active line changes to a different line, or the notepad loses focus. |
 
@@ -82,7 +82,7 @@ Rule: when you leave a line, all stamped lines except the new active line are so
 | O2 | Seek to 0:05, type `x` on a new last line, press Enter | `a` @0:10, `b` @0:20, `x`\| @0:05 | `x` @0:05, `a` @0:10, `b` @0:20, `|` (caret on new empty last line) |
 | O3 | Same as O2, but caret still on `x` (not left yet) | | `x` stays last until you leave it |
 | O4 | Leave by clicking another line, by arrow keys, by clicking the Play button or seek bar, or by clicking outside | | Sort happens |
-| O5 | Equal `t` (e.g. typing while paused, or a paste) | `q` (seq 7) @1:00 above `p` (seq 6) @1:00 | `p`, `q`, ordered by creation |
+| O5 | Equal `t`: any lines stamped within the same second, or while paused, or in one paste | `q` (seq 7) @1:00 above `p` (seq 6) @1:00 | `p`, `q`, ordered by creation |
 | O6 | Empty lines are kept as separators | `a` @3, `""`, `b` @1 (left) | `b` @1, `""`, `a` @3 |
 | O7 | Enter mid-line creates `c` @now while `ab` is earlier | `ab|c` | `ab` is sorted (left). `c` is active and stays put until left. |
 | O8 | Multi-line paste | | Pasted lines other than the one with the caret are sorted immediately. |

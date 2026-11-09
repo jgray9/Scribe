@@ -9,7 +9,7 @@ These are decisions made on your behalf. Each one lists the current choice and t
 | D3 | The line holding the caret during a sort | **Stays where it is** until you leave it, even when other lines are sorted around it (O3, O7). | It is sorted along with everything else, and the caret follows it. |
 | D4 | Which stamp survives a merge of several lines | The **first stamped line in the changed range** (S12, S13). This also means Backspace into an empty upper line keeps the lower line's stamp (S10). | Always the topmost line's stamp, even if it is empty, so the merged line gets a new stamp. |
 | D5 | Select all and type over everything | **Keeps the first old stamp** (S16), because it is treated as an edit of line 1. | Stamp it as a brand-new line at the current time. |
-| D6 | Stamp precision | **Stored in ms, shown in whole seconds.** Sorting uses ms, so two lines in the same second still keep their true order. Exact ties (paused, paste) fall back to creation order. | Store whole seconds. More lines would tie and fall back to creation order. |
+| D6 | Stamp precision | **Whole seconds** (✔ chosen by user, flipped from the original). Lines stamped in the same second tie, and ties fall back to creation order. | Store ms and show whole seconds, so sorting would use the hidden ms. |
 | D7 | Seek bar labels | **Current time on the left, high-water mark on the right** (`0:42 … 3:10`), like a video player. | Current time only. |
 | D8 | Seek bar before anything has run | **Disabled while the high-water mark is 0.** | Always enabled (it would do nothing). |
 | D9 | Native Ctrl+Z | **Left on.** Text undo works, but stamps follow the normal edit rules, so restored lines may be restamped. | Block Ctrl+Z entirely, so it can't produce surprising stamps. |

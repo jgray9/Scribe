@@ -67,7 +67,7 @@ reconcile(old: Line[], newText, nowMs, seqRef):
   // 3. normalize, in document order, so seq follows pasted order
   for line in result:
     if line.text == "":            line.stamp = null
-    else if line.stamp == null:    line.stamp = { t: nowMs, seq: seqRef.next++ }
+    else if line.stamp == null:    line.stamp = { t: floor(nowMs / 1000) * 1000, seq: seqRef.next++ }
   return result
 ```
 

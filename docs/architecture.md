@@ -27,7 +27,7 @@ The pure core never reads the clock or the DOM. Time comes in as `now` or `nowMs
 ## Data model
 
 ```js
-Line  = { text: string, stamp: { t: number /* ms */, seq: number } | null }
+Line  = { text: string, stamp: { t: number /* ms, whole seconds (multiple of 1000) */, seq: number } | null }
 State = {
   lines:      Line[],    // always ≥ 1 line; joined with "\n" equals textarea.value
   nextSeq:    number,    // global creation counter for stamps (inside seqRef)

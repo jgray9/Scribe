@@ -28,7 +28,7 @@
 - **R11.** Once a line is stamped, editing it never changes the stamp while it stays non-empty.
 - **R12.** A line that becomes empty loses its stamp. If it becomes non-empty again, it gets a new stamp at that moment.
 - **R13.** Stamped lines are kept in ascending timestamp order. A line is moved into order **when you leave it**, meaning the caret moves to another line or the notepad loses focus. Until then it stays where it is.
-- **R14.** When two stamps are equal, the line that was **stamped first** comes first.
+- **R14.** Stamps are kept to whole seconds. When two stamps are equal, the line that was **stamped first** comes first.
 - **R15.** Stamps appear in a **column to the left of each line**. They are not part of the text. On a line that wraps, the stamp sits beside the first visual row.
 - **R16.** If you press **Enter in the middle of a line**, the text before the caret keeps the stamp. The text after the caret becomes a new line stamped with the current time.
 - **R17.** If **Backspace at the start of a line** merges it into the line above, the merged line keeps the upper line's stamp.
