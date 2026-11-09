@@ -1,6 +1,6 @@
 # Scribe — design docs
 
-Scribe is a timed notepad. A video-style timer sits at the top and can be played, paused and scrubbed with a seek bar. A notepad sits below it. Every non-empty line is stamped with the timer's time at the moment that line became non-empty, and stamped lines are kept in timestamp order.
+Scribe is a timed notepad. A video-style timer sits at the top and can be played, paused and scrubbed with a seek bar. A notepad sits below it. Every non-empty line is stamped with the timer's time at the moment that line became non-empty, to the frame (1/30 s), and stamped lines are kept in timestamp order. Times read `M:SS.FF`, where `FF` is the frame 00–29.
 
 ## How the app will run
 

@@ -23,13 +23,43 @@ seek(T, ms, now):
   if T.running: T.startedAt = now        // keep running from the new position
 ```
 
-## formatTime
+## Frames and formatting
 
 ```
+FPS = 30
+
+toFrame(ms):                       // round down to the frame; integer
+  return floor(max(ms, 0) * 3 / 100)
+
+frameStart(f):                     // first whole ms inside frame f
+  return ceil(f * 100 / 3)         // integer maths: toFrame(frameStart(f)) == f for all f ≥ 0
+
+formatFrames(f):
+  sTotal = floor(f / FPS); ff = f % FPS
+  h = floor(sTotal / 3600); m = floor((sTotal % 3600) / 60); sec = sTotal % 60
+  return h > 0 ? `${h}:${pad2(m)}:${pad2(sec)}.${pad2(ff)}`
+               : `${m}:${pad2(sec)}.${pad2(ff)}`
+
 formatTime(ms):
-  s = floor(max(ms, 0) / 1000)
-  h = floor(s / 3600); m = floor((s % 3600) / 60); sec = s % 60
-  return h > 0 ? `${h}:${pad2(m)}:${pad2(sec)}` : `${m}:${pad2(sec)}`
+  return formatFrames(toFrame(ms))
+```
+
+## Seek bar (DOM layer)
+
+```
+renderTimer():
+  t = timer.time(now); hi = timer.max(now)
+  cur.text = formatTime(t); maxLabel.text = formatTime(hi)
+  seek.max = toFrame(hi); seek.step = 1
+  if not dragging: seek.value = toFrame(t)
+
+onSeekInput():
+  timer.seek(frameStart(Number(seek.value)), now)   // seek() still clamps to [0, high]
+  renderTimer()
+
+tick():                            // started by play, stopped by pause
+  renderTimer()
+  if timer.running: requestAnimationFrame(tick)
 ```
 
 ## reconcile — assign stamps after an edit
@@ -67,7 +97,7 @@ reconcile(old: Line[], newText, nowMs, seqRef):
   // 3. normalize, in document order, so seq follows pasted order
   for line in result:
     if line.text == "":            line.stamp = null
-    else if line.stamp == null:    line.stamp = { t: floor(nowMs / 1000) * 1000, seq: seqRef.next++ }
+    else if line.stamp == null:    line.stamp = { f: toFrame(nowMs), seq: seqRef.next++ }
   return result
 ```
 
@@ -77,7 +107,7 @@ reconcile(old: Line[], newText, nowMs, seqRef):
 sortLines(lines, active):                  // active: Line object or null
   slots  = indices i where lines[i].stamp ≠ null and lines[i] ≠ active
   movers = slots.map(i => lines[i])
-  movers.sort((a, b) => a.stamp.t - b.stamp.t || a.stamp.seq - b.stamp.seq)
+  movers.sort((a, b) => a.stamp.f - b.stamp.f || a.stamp.seq - b.stamp.seq)
   out = lines.slice()                      // empty lines and the active line stay put
   for k, i in slots: out[i] = movers[k]
   return out
@@ -119,5 +149,5 @@ render():
   textarea.style.height = mirror.scrollHeight
   column.replaceChildren()
   for i, line in lines:
-    if line.stamp: column.add(label(formatTime(line.stamp.t), top = mirror.children[i].offsetTop))
+    if line.stamp: column.add(label(formatFrames(line.stamp.f), top = mirror.children[i].offsetTop))
 ```

@@ -12,11 +12,11 @@
 
 ### Timer
 
-- **R1.** The timer shows the current time as `M:SS` under one hour and `H:MM:SS` from one hour on. It displays whole seconds, rounded down.
+- **R1.** The timer shows the current time as `M:SS.FF` under one hour and `H:MM:SS.FF` from one hour on, where `FF` is the frame within the second (00–29, at a fixed 30 frames per second). Times are rounded down to the frame.
 - **R2.** On page load the timer is **paused at 0:00**.
 - **R3.** A single **Play/Pause** button toggles between running and paused.
 - **R4.** Elapsed time is computed from the wall clock (`performance.now()`), so it stays accurate when the tab is in the background or the display updates late.
-- **R5.** A **seek bar** spans 0 to the **furthest time the timer has reached** (the high-water mark), and grows as the timer runs past it. You cannot seek beyond the high-water mark.
+- **R5.** A **seek bar** spans 0 to the **furthest time the timer has reached** (the high-water mark), and grows as the timer runs past it. You cannot seek beyond the high-water mark. The seek bar moves in steps of one frame (1/30 s).
 - **R6.** Seeking sets the timer to the chosen time and keeps its running or paused state.
 - **R7.** Seeking and pausing never change existing stamps.
 
@@ -28,12 +28,14 @@
 - **R11.** Once a line is stamped, editing it never changes the stamp while it stays non-empty.
 - **R12.** A line that becomes empty loses its stamp. If it becomes non-empty again, it gets a new stamp at that moment.
 - **R13.** Stamped lines are kept in ascending timestamp order. A line is moved into order **when you leave it**, meaning the caret moves to another line or the notepad loses focus. Until then it stays where it is.
-- **R14.** Stamps are kept to whole seconds. When two stamps are equal, the line that was **stamped first** comes first.
-- **R15.** Stamps appear in a **column to the left of each line**. They are not part of the text. On a line that wraps, the stamp sits beside the first visual row.
+- **R14.** Stamps are kept to the **frame (1/30 s)** and stored as an integer frame count. When two stamps are equal, the line that was **stamped first** comes first.
+- **R15.** Stamps appear in a **column to the left of each line**. They are not part of the text, and use the same format as the timer. On a line that wraps, the stamp sits beside the first visual row.
 - **R16.** If you press **Enter in the middle of a line**, the text before the caret keeps the stamp. The text after the caret becomes a new line stamped with the current time.
 - **R17.** If **Backspace at the start of a line** merges it into the line above, the merged line keeps the upper line's stamp.
 - **R18.** If you **paste** text spanning multiple lines, every new non-empty line gets the current time, in pasted order. Pasted order is also creation order.
 - **R19.** If you delete a **selection spanning several lines**, the merged line that survives keeps the stamp of the first stamped line in the deleted range.
+
+- **R21.** While running, the timer label and seek bar refresh every animation frame, so no 1/30 s frame is skipped on a display of 30 Hz or faster.
 
 ### Testing
 
@@ -51,6 +53,8 @@ These items are deliberately not built.
 | Manual editing of stamps | |
 | Undo/redo of stamps | No custom undo. See the limitation note in architecture.md. |
 | Reset / "New" button | Reload the page to start over. |
+| Configurable frame rate (24, 25, 60…) | Fixed at 30. |
+| Drop-frame timecode (29.97) | Frames are exact 1/30 s of wall-clock time. |
 | Persistence | There is no autosave. **Reloading or closing the page loses the notes.** |
 | Export, copy-all, download | |
 | Import, multiple notes | |

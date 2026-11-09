@@ -15,7 +15,7 @@ body { display: flex; flex-direction: column; font-family: sans-serif; }
 }
 #play { width: 5em; }
 #seek { flex: 1; min-width: 0; }
-.time { font-family: monospace; min-width: 7ch; text-align: center; }
+.time { font-family: monospace; min-width: 11ch; text-align: center; }
 
 #pad { flex: 1; overflow-y: auto; }
 #sheet { display: flex; align-items: flex-start; min-height: 100%; }
@@ -25,7 +25,7 @@ body { display: flex; flex-direction: column; font-family: sans-serif; }
 #gutter {
   flex: none;
   position: relative;
-  width: 9ch;
+  width: 12ch;   /* fits "10:00:00.00" plus the 1ch right inset */
   align-self: stretch;
   border-right: 1px solid #ddd;
   color: #777;
