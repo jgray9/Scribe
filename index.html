@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scribe</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="bar">
+    <button id="play" type="button">Play</button>
+    <span id="cur" class="time">0:00</span>
+    <input id="seek" type="range" min="0" max="0" step="1" value="0" disabled>
+    <span id="max" class="time">0:00</span>
+  </div>
+  <div id="pad">
+    <div id="sheet">
+      <div id="gutter"></div>
+      <div id="editor">
+        <div id="mirror" aria-hidden="true"></div>
+        <textarea id="text" spellcheck="false" autocomplete="off"></textarea>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
