@@ -9,6 +9,7 @@ Scribe is a timed notepad. A video-style timer sits at the top and can be played
 - `app.js` loads as a classic `<script>` because ES modules are blocked on `file://`. It is wrapped in an IIFE and exposes `window.Scribe`. Under Node it exports through `module.exports`.
 - The self-test runs in the browser console as `Scribe.selfTest()`, or in Node:
   `node -e "process.exit(require('./app.js').selfTest()?0:1)"`
+- A headless-Chrome page test lives in `tests/page-test.js`. It is not needed to run the app; see the root README.
 
 ## Documents
 

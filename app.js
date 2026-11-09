@@ -306,10 +306,31 @@
       render();
     }
 
+    // Keep the caret's visual row fully inside #pad (the textarea itself never scrolls).
+    function reveal() {
+      if (doc.activeElement !== ta) return;
+      var lc = toLineCol(ta.selectionEnd);
+      var idx = lines.indexOf(lc.line), div = mirror.children[idx];
+      if (!div) return;
+      var rect, node = div.firstChild, len = lc.line.text.length;
+      if (len && node) {
+        var r = doc.createRange(), at = Math.min(lc.col, len - 1);
+        r.setStart(node, at); r.setEnd(node, at + 1);
+        var rs = r.getClientRects();
+        rect = rs.length ? rs[lc.col >= len ? rs.length - 1 : 0] : div.getBoundingClientRect();
+      } else {
+        rect = div.getBoundingClientRect();
+      }
+      var box = pad.getBoundingClientRect(), margin = 8;
+      if (rect.bottom + margin > box.bottom) pad.scrollTop += rect.bottom + margin - box.bottom;
+      else if (rect.top - margin < box.top) pad.scrollTop -= box.top - (rect.top - margin);
+    }
+
     function checkActive() {
       sync();
       var next = doc.activeElement === ta ? lines[lineIndexAt(ta.selectionEnd)] : null;
       if (next !== active) { active = next; resort(); }
+      reveal();
     }
 
     ta.addEventListener('input', checkActive);

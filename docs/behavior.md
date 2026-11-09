@@ -98,3 +98,5 @@ Rule: when you leave a line, all stamped lines except the new active line are so
 | Long line wraps | The stamp sits beside the first row. Later rows are blank in the column. |
 | Window resize | Wrapping and stamp positions are recomputed |
 | Notepad taller than the window | The column and text scroll together |
+| Caret near or past the bottom or top edge | The notepad scrolls so the caret's row is fully visible, with a small margin |
+| Click blank space in the notepad area (beside the stamps, or below the text) | Focuses the notepad with the caret at the end of the text |

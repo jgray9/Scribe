@@ -54,6 +54,8 @@ The notepad is a **single `<textarea>`** with a stamp column beside it:
   - `selectionchange` / `keyup` / `mouseup` / `focus` → check the active line.
   - `blur` → sort with no active line.
   - `resize` → re-measure.
+- **Reveal:** after each check, the caret's visual row (measured with a `Range` on the mirror) is scrolled fully into `.pad`. Chrome's own caret reveal stops a couple of pixels short, because the textarea itself never scrolls.
+- **Blank-area click:** a `mousedown` on `.pad` outside the textarea focuses the textarea at the end of the text.
 - **Check active line:** compute the line under `selectionEnd`. If it is a different object from `state.activeLine`, sort with the new active line, write the text back, and restore the selection by mapping each end as (line object, column).
 
 ## Alternatives considered
@@ -74,4 +76,6 @@ The notepad is a **single `<textarea>`** with a stamp column beside it:
 4. **Select-all and retype** keeps the first old stamp (S16), because the result is treated as an edit of the first line.
 5. **Scaling.** Each keystroke re-renders the whole mirror and column, which is O(lines). That is fine for notes up to a few thousand lines; it is not tested beyond that.
 6. **Exactness of the textarea/mirror match.** Stamp alignment depends on the CSS metrics being identical. Unusual browser zoom levels or fonts could put a stamp off by a pixel or so.
-7. Chrome/Edge are the targets. Firefox is untested unless noted in plan.md's Status.
+7. Chrome/Edge are the targets. Only Chrome was tested (see plan.md Status). Edge shares Chrome's engine; Firefox is untested.
+8. **Blank separators stay at their row index** (D2). As stamped lines sort around them, a blank line can end up between different lines than the ones it originally separated.
+9. **Sorting rewrites the textarea's value.** In Chrome this can clear the native undo history at that point, so Ctrl+Z may not reach edits made before a sort.
