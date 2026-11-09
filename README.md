@@ -1,13 +1,15 @@
 # Scribe
 
-A timed notepad. A video-style timer sits at the top: play, pause, and scrub it with the seek bar. Every non-empty line you type is stamped with the timer's time at the moment the line became non-empty, and stamped lines are kept in timestamp order.
+A timed notepad. A video-style timer sits at the top: play, pause, and scrub it with the seek bar. Every non-empty line you type is stamped with the timer's time at the moment the line became non-empty, to the frame (1/30 s), and stamped lines are kept in timestamp order.
+
+Times read `M:SS.FF` (or `H:MM:SS.FF` past an hour). `FF` is the **frame number, 00–29**, not hundredths: `0:01.15` is 1.5 s.
 
 ## Run it
 
 Double-click `index.html`. Nothing needs to be installed and there is no server. `index.html`, `style.css` and `app.js` just need to stay in the same folder.
 
 - **Play/Pause** starts and stops the timer.
-- Drag the **seek bar** to jump to any time you have already reached.
+- Drag the **seek bar** to jump to any time you have already reached. It moves in steps of one frame.
 - Type below. Each line's stamp appears in the left column.
 - A line moves into time order when you leave it: Enter, arrow keys, a click elsewhere, or clicking Play or the seek bar.
 
@@ -18,7 +20,7 @@ Notes are **not saved**. Reloading or closing the page clears them.
 In the browser console:
 
 ```js
-Scribe.selfTest()   // → true, and logs "Scribe.selfTest: N/N passed"
+Scribe.selfTest()   // → true, and logs "Scribe.selfTest: 84/84 passed"
 ```
 
 In Node, from this folder:

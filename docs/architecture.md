@@ -84,7 +84,7 @@ The notepad is a **single `<textarea>`** with a stamp column beside it:
 4. **Select-all and retype** keeps the first old stamp (S16), because the result is treated as an edit of the first line.
 5. **Scaling.** Each keystroke re-renders the whole mirror and column, which is O(lines). That is fine for notes up to a few thousand lines; it is not tested beyond that.
 6. **Exactness of the textarea/mirror match.** Stamp alignment depends on the CSS metrics being identical. Unusual browser zoom levels or fonts could put a stamp off by a pixel or so.
-7. Chrome/Edge are the targets. Only Chrome was tested (see plan.md Status). Edge shares Chrome's engine; Firefox is untested.
+7. Chrome/Edge are the targets. Only headless Chrome was tested (see plan.md Status). Edge shares Chrome's engine; Firefox is untested.
 8. **Blank separators stay at their row index** (D2). As stamped lines sort around them, a blank line can end up between different lines than the ones it originally separated.
 9. **Sorting rewrites the textarea's value.** In Chrome this can clear the native undo history at that point, so Ctrl+Z may not reach edits made before a sort.
 10. **`FF` looks like a decimal.** `0:01.15` means frame 15 (1.5 s), not 1.15 s. The rate is fixed and documented, but the format can be misread.
