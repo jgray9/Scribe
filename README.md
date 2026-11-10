@@ -2,6 +2,8 @@
 
 A timed notepad. A video-style timer sits at the top: play, pause, and scrub it with the seek bar. Every non-empty line you type is stamped with the timer's time at the moment the line became non-empty, to the frame (1/30 s), and stamped lines are kept in timestamp order.
 
+The timer can run at 0.25×–2× speed and is driven from the keyboard when the seek bar is focused.
+
 Times read `M:SS.FF` (or `H:MM:SS.FF` past an hour). `FF` is the **frame number, 00–29**, not hundredths: `0:01.15` is 1.5 s.
 
 ## Run it
@@ -11,7 +13,21 @@ Double-click `index.html`. Nothing needs to be installed and there is no server.
 - **Play/Pause** starts and stops the timer.
 - Drag the **seek bar** to jump to any time you have already reached. It moves in steps of one frame.
 - Type below. Each line's stamp appears in the left column.
-- A line moves into time order when you leave it: Enter, arrow keys, a click elsewhere, or clicking Play or the seek bar.
+- A line moves into time order when you leave it: Enter, arrow keys, Tab, a click elsewhere, or clicking Play or the seek bar.
+
+### Keys
+
+`Tab` switches between the notepad and the seek bar (clicking Play also puts you on the seek bar; it gets a blue outline). With the **seek bar** focused:
+
+| Key | Does |
+|---|---|
+| `Space` / `k` | Play / pause |
+| `j` / `←` | Back 10 s |
+| `l` / `→` | Forward 10 s (up to the furthest time reached) |
+| `,` / `.` | Back / forward one frame (pauses first if running) |
+| `<` / `>` | Speed −/+ 0.25×, from 0.25× to 2× (shown at the right of the bar) |
+
+In the notepad every key types normally, except `Tab`. Speed resets to 1× on reload.
 
 Notes are **not saved**. Reloading or closing the page clears them.
 
@@ -20,7 +36,7 @@ Notes are **not saved**. Reloading or closing the page clears them.
 In the browser console:
 
 ```js
-Scribe.selfTest()   // → true, and logs "Scribe.selfTest: 84/84 passed"
+Scribe.selfTest()   // → true, and logs "Scribe.selfTest: 124/124 passed"
 ```
 
 In Node, from this folder:
