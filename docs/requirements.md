@@ -37,9 +37,24 @@
 
 - **R21.** While running, the timer label and seek bar refresh every animation frame, so no 1/30 s frame is skipped on a display of 30 Hz or faster.
 
+### Speed
+
+- **R22.** The timer has a **speed** from 0.25× to 2× in steps of 0.25×. Each wall-clock second advances the timer time by the speed. It starts at 1× on every page load.
+- **R23.** Changing the speed never makes the time jump: the timer continues from the time it had at that moment.
+- **R24.** A speed label next to the max label always shows the current speed (`1×`, `0.75×`, …).
+
+### Keyboard (see behavior.md §6)
+
+- **R25.** With the seek bar focused: `Space`/`k` play/pause; `j`/`←` back 10 s; `l`/`→` forward 10 s; `,` previous frame; `.` next frame; `<` slower by 0.25× (min 0.25×); `>` faster by 0.25× (max 2×).
+- **R26.** `Tab` toggles focus between the notepad and the seek bar. In the notepad it never inserts a character. Returning to the notepad restores the caret and selection.
+- **R27.** 10 s jumps clamp to [0, high-water mark] and keep the running or paused state. Frame steps pause first if running.
+- **R28.** The range input's own key handling (arrows, `↑`/`↓`, Home/End, PageUp/PageDown) is suppressed, so only the keys in R25 act on the seek bar.
+- **R29.** The seek bar is focusable from page load, even while the high-water mark is 0. Clicking Play/Pause leaves focus on the seek bar. The seek bar shows a visible focus ring.
+- **R30.** Shortcuts act only while the seek bar is focused. Keys pressed with Ctrl, Alt or Meta are left to the browser.
+
 ### Testing
 
-- **R20.** All logic that does not touch the page is held in pure functions: the timer, time formatting, line reconciliation, and sorting. `Scribe.selfTest()` exercises those functions and returns `true` or `false` in both the browser and Node.
+- **R20.** All logic that does not touch the page is held in pure functions: the timer (including speed), time and speed formatting, key mapping, seek-bar actions, line reconciliation, and sorting. `Scribe.selfTest()` exercises those functions and returns `true` or `false` in both the browser and Node.
 
 ## Out of scope
 
@@ -48,7 +63,10 @@ These items are deliberately not built.
 | Item | Note |
 |---|---|
 | Visual style and themes | Plain browser defaults plus the minimum layout CSS. No dark mode and no design work. |
-| Keyboard shortcuts | Play/pause and seek are mouse-only. |
+| Shortcuts while the notepad is focused | Only `Tab` is special there. Use `Tab` to reach the seek bar first. |
+| Rebinding keys, a shortcut help overlay | |
+| Speeds outside 0.25×–2×, or typed-in speeds | |
+| Remembering the speed across reloads | Nothing persists. |
 | Clicking a stamp to seek | |
 | Manual editing of stamps | |
 | Undo/redo of stamps | No custom undo. See the limitation note in architecture.md. |

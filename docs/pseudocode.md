@@ -4,10 +4,10 @@
 
 ```
 createTimer():
-  return { running: false, base: 0, startedAt: 0, high: 0 }
+  return { running: false, base: 0, startedAt: 0, high: 0, rate: 1 }
 
 time(T, now):
-  return T.running ? T.base + (now - T.startedAt) : T.base
+  return T.running ? T.base + (now - T.startedAt) * T.rate : T.base
 
 max(T, now):
   T.high = max(T.high, time(T, now))      // high-water mark only grows
@@ -21,7 +21,88 @@ seek(T, ms, now):
   hi = max(T, now)
   T.base = clamp(ms, 0, hi)
   if T.running: T.startedAt = now        // keep running from the new position
+
+setRate(T, r, now):
+  if T.running:
+    T.high = max(T, now)
+    T.base = time(T, now)                 // rebase at the old rate: no jump
+    T.startedAt = now
+  T.rate = r
 ```
+
+## Speed
+
+```
+RATE_MIN = 0.25; RATE_MAX = 2; RATE_STEP = 0.25   // all exact in binary floating point
+
+stepRate(r, dir):                         // dir = -1 or +1
+  return clamp(r + dir * RATE_STEP, RATE_MIN, RATE_MAX)
+
+formatRate(r):
+  return String(r) + "×"                  // 0.25× 0.5× 0.75× 1× 1.25× 1.5× 1.75× 2×
+```
+
+## Keys
+
+```
+seekKeyAction(ev):                        // ev: { key, ctrlKey, altKey, metaKey }
+  if ev.ctrlKey or ev.altKey or ev.metaKey: return null
+  k = ev.key.length == 1 ? ev.key.toLowerCase() : ev.key
+  switch k:
+    " ", "k"                 → "toggle"
+    "j", "ArrowLeft"         → "back10"
+    "l", "ArrowRight"        → "fwd10"
+    ","                      → "prevFrame"
+    "."                      → "nextFrame"
+    "<"                      → "slower"
+    ">"                      → "faster"
+    "Tab"                    → "switch"          // with or without Shift
+    "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown" → "block"
+    otherwise                → null
+
+applySeekAction(T, action, now):
+  t = time(T, now)
+  switch action:
+    "toggle":    toggle(T, now)
+    "back10":    seek(T, t - 10000, now)        // seek clamps to [0, high]
+    "fwd10":     seek(T, t + 10000, now)
+    "prevFrame": pause(T, now); f = toFrame(time(T, now))
+                 seek(T, frameStart(max(f - 1, 0)), now)
+    "nextFrame": pause(T, now); f = toFrame(time(T, now)); F = toFrame(max(T, now))
+                 seek(T, frameStart(min(f + 1, F)), now)
+    "slower":    setRate(T, stepRate(T.rate, -1), now)
+    "faster":    setRate(T, stepRate(T.rate, +1), now)
+    "block", "switch", null: nothing         // "switch" is handled by the DOM layer
+```
+
+## Keyboard wiring (DOM layer)
+
+```
+saved = null                              // { a: LineCol, b: LineCol, dir } or null
+
+seek.onkeydown(e):
+  action = seekKeyAction(e)
+  if action == null: return
+  e.preventDefault()
+  if action == "switch":
+    textarea.focus()
+    if saved: textarea.setSelectionRange(toOffset(saved.a), toOffset(saved.b), saved.dir)
+    else:     textarea.setSelectionRange(len, len)
+    checkActive()
+    return
+  applySeekAction(timer, action, now); renderTimer(); startTick()
+
+textarea.onkeydown(e):
+  if e.key != "Tab" or e.ctrlKey or e.altKey or e.metaKey: return
+  e.preventDefault()
+  saved = { a: toLineCol(selectionStart), b: toLineCol(selectionEnd), dir: selectionDirection }
+  seek.focus()                            // textarea blur → checkActive → sort with no active line
+
+play.onclick:
+  timer.toggle(now); renderTimer(); startTick(); seek.focus()
+```
+
+`toOffset` looks a line up by object identity, so a saved caret still lands on the right line after the sort that leaving caused. If its line was deleted in the meantime (impossible without focus, but cheap to guard), `toOffset` falls back to the end of the text.
 
 ## Frames and formatting
 

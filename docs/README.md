@@ -1,6 +1,6 @@
 # Scribe — design docs
 
-Scribe is a timed notepad. A video-style timer sits at the top and can be played, paused and scrubbed with a seek bar. A notepad sits below it. Every non-empty line is stamped with the timer's time at the moment that line became non-empty, to the frame (1/30 s), and stamped lines are kept in timestamp order. Times read `M:SS.FF`, where `FF` is the frame 00–29.
+Scribe is a timed notepad. A video-style timer sits at the top and can be played, paused and scrubbed with a seek bar. A notepad sits below it. Every non-empty line is stamped with the timer's time at the moment that line became non-empty, to the frame (1/30 s), and stamped lines are kept in timestamp order. Times read `M:SS.FF`, where `FF` is the frame 00–29. The timer can run from 0.25× to 2× speed, and with the seek bar focused it is driven from the keyboard (`Space`/`k`, `j`/`l`, arrows, `,`/`.`, `<`/`>`); `Tab` switches between the seek bar and the notepad.
 
 ## How the app will run
 
@@ -18,6 +18,6 @@ Scribe is a timed notepad. A video-style timer sits at the top and can be played
 | [requirements.md](requirements.md) | Numbered requirements, platform constraints, and the out-of-scope list |
 | [behavior.md](behavior.md) | **Source of truth.** Exact behavior, with edge-case tables |
 | [architecture.md](architecture.md) | Files, modules, data model, alternatives considered, and known limitations |
-| [pseudocode.md](pseudocode.md) | Timer, line reconciliation, sorting, and caret mapping |
+| [pseudocode.md](pseudocode.md) | Timer and speed, key handling, line reconciliation, sorting, and caret mapping |
 | [plan.md](plan.md) | Milestones and the manual test checklist |
 | [open-questions.md](open-questions.md) | Decisions made on the user's behalf, each with its alternative |

@@ -1,13 +1,13 @@
 # Plan
 
-This plan covers the **frame-precision change** (1/30 s stamps and display) on top of the existing app. Each milestone ends with something you can open by double-clicking `index.html`, and `selfTest()` passes.
+This plan covers the **keybinds and speed change** on top of the existing app (frame precision was the previous change; its milestones are summarised at the end). Each milestone ends with something you can open by double-clicking `index.html`, and `selfTest()` passes.
 
 | # | Milestone | Runnable result |
 |---|---|---|
-| F1 | **Frame core:** `toFrame`, `frameStart`, `formatFrames`; `formatTime` rebuilt on them. Self-tests for every row of behavior §1 and the `frameStart` round-trip. | The page shows `0:00.00` style labels everywhere. Node self-test passes. |
-| F2 | **Frame stamps:** stamps become `{ f, seq }`; `reconcile` and `sortLines` use frames. Existing S/O self-tests updated to frames; new S21, S22, O11. | All rules proven in Node; stamps on the page show frames. |
-| F3 | **Seek bar and refresh:** seek bar in frame units via `frameStart`; `requestAnimationFrame` tick while running; gutter and label widths widened. | Scrubbing moves one frame per step; the running label counts every frame. |
-| F4 | **Verification:** update `tests/page-test.js` for the new format (puppeteer-core in the scratchpad only), add frame checks, screenshot review. | Every checklist item passes, with no console errors. |
+| K1 | **Speed core:** `timer.rate`, `setRate`, scaled `time`; `stepRate`, `formatRate`. Self-tests for rebasing without a jump, high-water growth at 2×, and the 0.25×/2× clamps. | Node self-test passes. The page is unchanged apart from a `1×` label. |
+| K2 | **Key core:** `seekKeyAction` and `applySeekAction`. Self-tests for every key in behavior §6 (including case, Shift, Ctrl/Alt/Meta) and every K-row that doesn't need a page. | All key rules proven in Node. |
+| K3 | **Wiring:** seek bar always enabled; `keydown` on the seek bar and textarea; Tab caret save/restore; Play click focuses the seek bar; `#rate` label; `:focus` ring. | Every shortcut works on the page. |
+| K4 | **Verification:** extend `tests/page-test.js` with real key presses for every shortcut and K-row (puppeteer-core in the scratchpad only); screenshot review with the seek bar focused. | Every checklist item passes, with no console errors. |
 
 ## Manual test checklist
 
@@ -15,7 +15,7 @@ Mark each item as it passes. The M5 script automates every item that is marked �
 
 **Timer**
 
-- [x] ⚙ On load, it shows `0:00.00`, paused, with the seek bar disabled.
+- [ ] ⚙ On load, it shows `0:00.00`, paused, speed `1×`, with the seek bar enabled and focusable. *(changed: was disabled)*
 - [x] ⚙ Play for about 2 s, then Pause: it shows `0:02.FF` (some frame), and the seek bar's max equals that frame count.
 - [x] ⚙ Seek to frame 45 while paused: it shows `0:01.15` and stays paused.
 - [x] ⚙ Seek one step at a time: each step changes the label by exactly one frame.
@@ -44,6 +44,23 @@ Mark each item as it passes. The M5 script automates every item that is marked �
 - [x] ⚙ An empty separator line stays in place (O6).
 - [x] ⚙ The caret stays on the same line after a sort (O9).
 
+**Keyboard** (behavior §6)
+
+- [ ] ⚙ Clicking Play focuses the seek bar; the seek bar shows a focus ring.
+- [ ] ⚙ Before any Play, Tab to the seek bar and press Space: the timer starts (K11).
+- [ ] ⚙ `Space` and `k` (and `K`) each toggle play/pause.
+- [ ] ⚙ `j` / `←` jump back 10 s; at 0:04 they land on 0:00 (K2).
+- [ ] ⚙ `l` / `→` jump forward 10 s, clamped to max (K1, K3); running state is kept (K4).
+- [ ] ⚙ `,` / `.` step exactly one frame; while running they pause first (K7); `,` at 0 and `.` at the last frame stay put (K5, K6).
+- [ ] ⚙ `<` / `>` step the speed by 0.25× between 0.25× and 2×; the label follows (K9, K10).
+- [ ] ⚙ At 2×, about 2 s of timer time pass per wall-clock second; changing speed while running doesn't jump.
+- [ ] ⚙ `↑`, `↓`, Home, End, PageUp, PageDown leave the time unchanged.
+- [ ] ⚙ Ctrl/Alt/Meta + a shortcut key does nothing to the timer (K14).
+- [ ] ⚙ Tab in the notepad moves to the seek bar without inserting anything, and sorts the line (K16).
+- [ ] ⚙ Tab on the seek bar returns to the notepad with the caret/selection where it was, on the same line after a sort.
+- [ ] ⚙ Typing `k`, `,`, `<` in the notepad just types them (K17).
+- [ ] ⚙ Holding `l` repeats (K13).
+
 **Layout**
 
 - [x] ⚙ A stamp past one hour (`1:00:00.00`) fits the column without overlapping the text.
@@ -51,8 +68,16 @@ Mark each item as it passes. The M5 script automates every item that is marked �
 - [x] ⚙ After resizing the window narrower, the stamps re-align.
 - [x] ⚙ In a notepad longer than the window, the stamps scroll with the text.
 - [x] Screenshot reviewed by eye (900 px and 500 px wide).
+- [ ] ⚙ The speed label fits the bar at 500 px wide without squeezing the seek bar to nothing.
+- [ ] Screenshot reviewed with the seek bar focused.
 
 ## Status
+
+**Keybinds and speed: designed, not built yet.** Unchecked items above are for this change.
+
+### Previous change: frame precision (F1–F4)
+
+F1 frame core, F2 frame stamps, F3 frame seek bar and rAF refresh, F4 verification.
 
 **Built; verified 2026-11-09 in headless Chrome for Testing 153 (Linux) only.**
 
