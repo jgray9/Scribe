@@ -111,4 +111,4 @@ The notepad is a **single `<textarea>`** with a stamp column beside it:
 17. **Keys follow the character, not the key position** (D18). On layouts where `<`, `>`, `,` or `.` need unusual combinations, the shortcut needs that same combination. A combination that needs AltGr (reported as Ctrl+Alt on Windows) is ignored by D19.
 18. **Auto-repeat speed is the OS keyboard repeat rate.** Holding `.` steps frames at that rate, not at 30 per second.
 19. **Speed is not shown on stamps.** A stamp is timer time; it does not record what speed was in effect.
-
+20. **`.` while running normally only pauses** (K7b). When you haven't sought back, the timer is at the high-water mark, so there is no next frame to step to. Press `.` again after `,` to move forward.

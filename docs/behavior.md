@@ -164,7 +164,8 @@ Every handled or blocked key calls `preventDefault`, so the range input never mo
 | K4 | `j`/`l` while running | The jump happens and the timer keeps running from the new time. |
 | K5 | `,` at 0:00.00 | Stays at 0:00.00. |
 | K6 | `.` on frame `F` | Stays on frame `F`. |
-| K7 | `,` or `.` while running at 0:05.12 (mid-frame) | Pauses at 0:05.12, then lands on 0:05.11 or 0:05.13 exactly. |
+| K7 | `,` or `.` while running at 0:05.12 (mid-frame), after seeking back so `max` is ahead | Pauses at 0:05.12, then lands on 0:05.11 or 0:05.13 exactly. |
+| K7b | `.` while running at the live edge (time = `max`, the usual case when you haven't sought back) | Pauses and stays on that frame: there is no later frame yet (D23). `,` still steps back. |
 | K8 | `,` then `.` while paused | Returns to the same frame. |
 | K9 | `<` at 0.25× / `>` at 2× | Speed unchanged. |
 | K10 | `>` four times from 1× | 2×. Each press adds 0.25×. |

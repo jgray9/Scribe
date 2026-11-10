@@ -15,7 +15,7 @@ Mark each item as it passes. The M5 script automates every item that is marked �
 
 **Timer**
 
-- [ ] ⚙ On load, it shows `0:00.00`, paused, speed `1×`, with the seek bar enabled and focusable. *(changed: was disabled)*
+- [x] ⚙ On load, it shows `0:00.00`, paused, speed `1×`, with the seek bar enabled and focusable. *(changed: was disabled)*
 - [x] ⚙ Play for about 2 s, then Pause: it shows `0:02.FF` (some frame), and the seek bar's max equals that frame count.
 - [x] ⚙ Seek to frame 45 while paused: it shows `0:01.15` and stays paused.
 - [x] ⚙ Seek one step at a time: each step changes the label by exactly one frame.
@@ -46,20 +46,20 @@ Mark each item as it passes. The M5 script automates every item that is marked �
 
 **Keyboard** (behavior §6)
 
-- [ ] ⚙ Clicking Play focuses the seek bar; the seek bar shows a focus ring.
-- [ ] ⚙ Before any Play, Tab to the seek bar and press Space: the timer starts (K11).
-- [ ] ⚙ `Space` and `k` (and `K`) each toggle play/pause.
-- [ ] ⚙ `j` / `←` jump back 10 s; at 0:04 they land on 0:00 (K2).
-- [ ] ⚙ `l` / `→` jump forward 10 s, clamped to max (K1, K3); running state is kept (K4).
-- [ ] ⚙ `,` / `.` step exactly one frame; while running they pause first (K7); `,` at 0 and `.` at the last frame stay put (K5, K6).
-- [ ] ⚙ `<` / `>` step the speed by 0.25× between 0.25× and 2×; the label follows (K9, K10).
-- [ ] ⚙ At 2×, about 2 s of timer time pass per wall-clock second; changing speed while running doesn't jump.
-- [ ] ⚙ `↑`, `↓`, Home, End, PageUp, PageDown leave the time unchanged.
-- [ ] ⚙ Ctrl/Alt/Meta + a shortcut key does nothing to the timer (K14).
-- [ ] ⚙ Tab in the notepad moves to the seek bar without inserting anything, and sorts the line (K16).
-- [ ] ⚙ Tab on the seek bar returns to the notepad with the caret/selection where it was, on the same line after a sort.
-- [ ] ⚙ Typing `k`, `,`, `<` in the notepad just types them (K17).
-- [ ] ⚙ Holding `l` repeats (K13).
+- [x] ⚙ Clicking Play focuses the seek bar; the seek bar shows a focus ring.
+- [x] ⚙ Before any Play, Tab to the seek bar and press Space: the timer starts (K11).
+- [x] ⚙ `Space` and `k` (and `K`) each toggle play/pause.
+- [x] ⚙ `j` / `←` jump back 10 s; at 0:04 they land on 0:00 (K2).
+- [x] ⚙ `l` / `→` jump forward 10 s, clamped to max (K1, K3); running state is kept (K4).
+- [x] ⚙ `,` / `.` step exactly one frame; while running they pause first (K7); at the live edge `.` only pauses (K7b, self-test); `,` at 0 and `.` at the last frame stay put (K5, K6).
+- [x] ⚙ `<` / `>` step the speed by 0.25× between 0.25× and 2×; the label follows (K9, K10).
+- [x] ⚙ At 2×, about 2 s of timer time pass per wall-clock second; changing speed while running doesn't jump.
+- [x] ⚙ `↑`, `↓`, Home, End, PageUp, PageDown leave the time unchanged.
+- [x] ⚙ Ctrl/Alt/Meta + a shortcut key does nothing to the timer (K14).
+- [x] ⚙ Tab in the notepad moves to the seek bar without inserting anything, and sorts the line (K16).
+- [x] ⚙ Tab on the seek bar returns to the notepad with the caret/selection where it was, on the same line after a sort.
+- [x] ⚙ Typing `k`, `,`, `<` in the notepad just types them (K17).
+- [x] ⚙ Holding `l` repeats (K13).
 
 **Layout**
 
@@ -68,12 +68,18 @@ Mark each item as it passes. The M5 script automates every item that is marked �
 - [x] ⚙ After resizing the window narrower, the stamps re-align.
 - [x] ⚙ In a notepad longer than the window, the stamps scroll with the text.
 - [x] Screenshot reviewed by eye (900 px and 500 px wide).
-- [ ] ⚙ The speed label fits the bar at 500 px wide without squeezing the seek bar to nothing.
-- [ ] Screenshot reviewed with the seek bar focused.
+- [x] ⚙ The speed label fits the bar at 500 px wide without squeezing the seek bar to nothing.
+- [x] Screenshot reviewed with the seek bar focused (900 px and 500 px).
 
 ## Status
 
-**Keybinds and speed: designed, not built yet.** Unchecked items above are for this change.
+**Keybinds and speed (K1–K4): built; verified 2026-11-09 in headless Chrome for Testing 153 (Linux) only.**
+
+- **Self-tests:** `Scribe.selfTest()` passes 124/124 in Node 22 and inside the page (40 new). New coverage, all at the pure-function level: speed (scaled time, rebasing without a jump, `max` growth at 2×, persistence through pause/seek/play), `stepRate` clamps, `formatRate`, `seekKeyAction` for every key including case, Shift, Ctrl/Alt/Meta, blocked and unhandled keys, and `applySeekAction` for K1–K12 plus K7b.
+- **Page tests:** `tests/page-test.js` passes 90/90 (44 new). The keyboard section runs on a page whose `performance.now` is a hand-set clock, so times are exact, and sends real key events through puppeteer: every shortcut, K1–K6, K7 (running), K8, K9–K11, K13 (held key), K14–K17, Tab and Shift+Tab both ways with caret and selection restore after a sort, D25, the Play-click focus and focus ring, stamps at 1.5×, and the label fitting at 500 px. It still fails on any console error.
+- **Mutation check:** removing the seek bar's `preventDefault`, the notepad's Tab handler, or the caret restore each made the page test fail (9, 5 and 1 failures respectively).
+- **Spec fix found while building:** K7 originally implied `.` always advances while running. At the live edge there is no next frame, so it only pauses; the row was split into K7/K7b. This was a spec bug, not an app bug.
+- **Not verified:** Edge and Firefox; a physical keyboard's auto-repeat (simulated with repeated keydowns); non-US layouts (D18).
 
 ### Previous change: frame precision (F1–F4)
 

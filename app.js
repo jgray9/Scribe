@@ -36,8 +36,9 @@
       base: 0,       // time at last pause/seek/play
       startedAt: 0,  // `now` when it last started running from `base`
       high: 0,       // high-water mark (never decreases)
+      rate: 1,       // speed: timer ms per wall-clock ms (0.25…2)
       time: function (now) {
-        return this.running ? this.base + (now - this.startedAt) : this.base;
+        return this.running ? this.base + (now - this.startedAt) * this.rate : this.base;
       },
       max: function (now) {
         this.high = Math.max(this.high, this.time(now));
@@ -54,8 +55,60 @@
         var hi = this.max(now);
         this.base = Math.min(Math.max(ms, 0), hi);
         if (this.running) this.startedAt = now;
+      },
+      /** Change speed without a jump: rebase at the old rate first (behavior.md §2). */
+      setRate: function (r, now) {
+        if (this.running) { this.max(now); this.base = this.time(now); this.startedAt = now; }
+        this.rate = r;
       }
     };
+  }
+
+  // --------------------------------------------------------------------- speed
+  var RATE_MIN = 0.25, RATE_MAX = 2, RATE_STEP = 0.25;   // all exact in binary
+
+  function stepRate(r, dir) {
+    return Math.min(Math.max(r + dir * RATE_STEP, RATE_MIN), RATE_MAX);
+  }
+
+  /** 0.25× 0.5× 0.75× 1× 1.25× 1.5× 1.75× 2× */
+  function formatRate(r) { return String(r) + '×'; }
+
+  // ---------------------------------------------------------------------- keys
+  var SEEK_KEYS = {
+    ' ': 'toggle', k: 'toggle',
+    j: 'back10', ArrowLeft: 'back10',
+    l: 'fwd10', ArrowRight: 'fwd10',
+    ',': 'prevFrame', '.': 'nextFrame',
+    '<': 'slower', '>': 'faster',
+    Tab: 'switch',
+    ArrowUp: 'block', ArrowDown: 'block', Home: 'block', End: 'block',
+    PageUp: 'block', PageDown: 'block'
+  };
+
+  /** Seek-bar keydown → action name, or null to leave the event alone (behavior.md §6). */
+  function seekKeyAction(ev) {
+    if (ev.ctrlKey || ev.altKey || ev.metaKey) return null;
+    var k = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
+    return Object.prototype.hasOwnProperty.call(SEEK_KEYS, k) ? SEEK_KEYS[k] : null;
+  }
+
+  /** Apply a seek-bar action to the timer. 'switch' and 'block' do nothing here. */
+  function applySeekAction(T, action, now) {
+    var f;
+    switch (action) {
+      case 'toggle': T.toggle(now); break;
+      case 'back10': T.seek(T.time(now) - 10000, now); break;
+      case 'fwd10': T.seek(T.time(now) + 10000, now); break;
+      case 'prevFrame':
+        T.pause(now); f = toFrame(T.time(now));
+        T.seek(frameStart(Math.max(f - 1, 0)), now); break;
+      case 'nextFrame':
+        T.pause(now); f = toFrame(T.time(now));
+        T.seek(frameStart(Math.min(f + 1, toFrame(T.max(now)))), now); break;
+      case 'slower': T.setRate(stepRate(T.rate, -1), now); break;
+      case 'faster': T.setRate(stepRate(T.rate, 1), now); break;
+    }
   }
 
   // --------------------------------------------------------------------- lines
@@ -178,6 +231,74 @@
     T.toggle(16000); eq('T toggle pauses', [T.running, T.time(17000)], [false, 2000]);
     T.toggle(17000); eq('T toggle plays', T.running, true);
 
+    // §2 speed
+    T = createTimer(); eq('R load rate 1', T.rate, 1);
+    T.setRate(2, 0); eq('R paused setRate no time change', [T.rate, T.time(5000)], [2, 0]);
+    T.play(1000); eq('R 2x runs double', T.time(2000), 2000);
+    eq('R 2x grows max', T.max(3000), 4000);
+    T.setRate(0.5, 3000); eq('R rebase no jump', T.time(3000), 4000);
+    eq('R 0.5x after rebase', T.time(5000), 5000);
+    T.pause(5000); eq('R pause keeps rate', [T.running, T.rate, T.time(9000)], [false, 0.5, 5000]);
+    T.seek(1000, 9000); T.play(9000); eq('R seek+play keep rate', T.time(13000), 3000);
+    eq('R max kept through rates', T.max(13000), 5000);
+    eq('stepRate', [stepRate(1, -1), stepRate(1, 1), stepRate(0.25, -1), stepRate(2, 1), stepRate(1.75, 1)],
+      [0.75, 1.25, 0.25, 2, 2]);
+    var r = 1, ups = []; for (var u = 0; u < 5; u++) { r = stepRate(r, 1); ups.push(r); }
+    eq('stepRate up from 1 (K10)', ups, [1.25, 1.5, 1.75, 2, 2]);
+    r = 1; var downs = []; for (var d = 0; d < 4; d++) { r = stepRate(r, -1); downs.push(r); }
+    eq('stepRate down from 1 (K9)', downs, [0.75, 0.5, 0.25, 0.25]);
+    eq('formatRate', [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map(formatRate),
+      ['0.25×', '0.5×', '0.75×', '1×', '1.25×', '1.5×', '1.75×', '2×']);
+
+    // §6 keys
+    function K(key, mods) {
+      var e = { key: key, ctrlKey: false, altKey: false, metaKey: false, shiftKey: false };
+      for (var m in mods) e[m] = mods[m];
+      return seekKeyAction(e);
+    }
+    eq('keys map', [' ', 'k', 'K', 'j', 'J', 'ArrowLeft', 'l', 'L', 'ArrowRight', ',', '.', '<', '>', 'Tab'].map(function (k) { return K(k); }),
+      ['toggle', 'toggle', 'toggle', 'back10', 'back10', 'back10', 'fwd10', 'fwd10', 'fwd10', 'prevFrame', 'nextFrame', 'slower', 'faster', 'switch']);
+    eq('keys shift allowed', [K('<', { shiftKey: true }), K('Tab', { shiftKey: true }), K('K', { shiftKey: true })], ['slower', 'switch', 'toggle']);
+    eq('keys blocked', ['ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].map(function (k) { return K(k); }),
+      ['block', 'block', 'block', 'block', 'block', 'block']);
+    eq('keys K14 modifiers ignored', [K('k', { ctrlKey: true }), K('j', { altKey: true }), K('.', { metaKey: true }), K('Tab', { ctrlKey: true })],
+      [null, null, null, null]);
+    eq('keys unhandled', ['a', 'x', 'Enter', 'Escape', 'Shift', '0', 'Backspace'].map(function (k) { return K(k); }),
+      [null, null, null, null, null, null, null]);
+
+    // Fresh paused timer whose max is `hi` ms and time is `at` ms.
+    function TT(hi, at) { var t = createTimer(); t.play(0); t.pause(hi); t.seek(at, hi); return t; }
+    var A = applySeekAction;
+    T = TT(9000, 4000); A(T, 'back10', 0); eq('K2 back10 clamps to 0', T.time(0), 0);
+    T = TT(9000, 4000); A(T, 'fwd10', 0); eq('K3 fwd10 clamps to max', T.time(0), 9000);
+    T = TT(9000, 9000); A(T, 'fwd10', 0); eq('K1 fwd10 at max', T.time(0), 9000);
+    T = TT(30000, 15000); A(T, 'back10', 0); eq('back10', T.time(0), 5000);
+    A(T, 'fwd10', 0); eq('fwd10', T.time(0), 15000);
+    T = TT(30000, 15000); T.play(100000); A(T, 'fwd10', 100500);
+    eq('K4 fwd10 running keeps running', [T.running, T.time(101500)], [true, 26500]);
+    T = TT(30000, 15000); T.setRate(0.5, 0); A(T, 'back10', 0); eq('K12 10s not scaled by speed', T.time(0), 5000);
+    T = TT(9000, 0); A(T, 'prevFrame', 0); eq('K5 prevFrame at 0', T.time(0), 0);
+    T = TT(9000, 1500); A(T, 'prevFrame', 0); eq('prevFrame', [T.running, toFrame(T.time(0))], [false, 44]);
+    A(T, 'nextFrame', 0); eq('K8 prev then next', toFrame(T.time(0)), 45);
+    T = TT(9000, 9000); A(T, 'nextFrame', 0); eq('K6 nextFrame at last frame', toFrame(T.time(0)), 270);
+    T = TT(9000, 0); T.play(0); A(T, 'nextFrame', 5400);   // running behind max: room to step
+    eq('K7 nextFrame running pauses then steps', [T.running, formatTime(T.time(9999))], [false, '0:05.13']);
+    T = createTimer(); T.play(0); A(T, 'nextFrame', 5400);  // running at the live edge: time == max
+    eq('K7b nextFrame at live edge pauses, stays', [T.running, formatTime(T.time(9999))], [false, '0:05.12']);
+    T = TT(9000, 0); T.play(0); A(T, 'prevFrame', 5400);
+    eq('K7 prevFrame running pauses then steps', [T.running, formatTime(T.time(9999))], [false, '0:05.11']);
+    eq('K7 stepped time is a frame start', T.time(9999), frameStart(toFrame(T.time(9999))));
+    T = createTimer(); A(T, 'fwd10', 0); A(T, 'nextFrame', 0); A(T, 'back10', 0);
+    eq('K11 seek keys before first play', [T.time(0), T.running], [0, false]);
+    A(T, 'faster', 0); eq('K11 speed works before play', T.rate, 1.25);
+    A(T, 'toggle', 0); eq('K11 toggle starts', T.running, true);
+    A(T, 'toggle', 10); eq('toggle pauses', T.running, false);
+    T = createTimer(); T.play(0); A(T, 'faster', 1000); A(T, 'faster', 1000);
+    eq('faster while running: no jump, then 1.5x', [T.time(1000), T.time(2000), T.rate], [1000, 2500, 1.5]);
+    A(T, 'slower', 2000); eq('slower', [T.rate, T.time(2000)], [1.25, 2500]);
+    T = TT(9000, 4000); A(T, 'block', 0); A(T, 'switch', 0); A(T, null, 0);
+    eq('block/switch/null do nothing', [T.time(0), T.running, T.rate], [4000, false, 1]);
+
     // §3 stamp assignment
     var a, b;
     fresh(); a = edit([L('')], 'a', 12); eq('S1', view(a), ['a@0:12.00']);
@@ -247,7 +368,7 @@
   // ----------------------------------------------------------------------- DOM
   function wire(doc, win) {
     function $(id) { return doc.getElementById(id); }
-    var playBtn = $('play'), curEl = $('cur'), maxEl = $('max'), seekEl = $('seek');
+    var playBtn = $('play'), curEl = $('cur'), maxEl = $('max'), seekEl = $('seek'), rateEl = $('rate');
     var pad = $('pad'), gutter = $('gutter'), mirror = $('mirror'), ta = $('text');
     function now() { return win.performance.now(); }
 
@@ -257,6 +378,7 @@
     var joined = '';
     var active = null;
     var dragging = false;
+    var savedCaret = null;   // { a, b: {line, col}, dir } remembered when Tab leaves the notepad
 
     // --- timer UI
     // The seek bar's unit is one frame (behavior.md §2); the timer itself stays in ms.
@@ -265,10 +387,10 @@
       curEl.textContent = formatTime(t);
       maxEl.textContent = formatTime(m);
       var mf = toFrame(m);
-      seekEl.max = String(mf);
-      seekEl.disabled = mf === 0;
+      seekEl.max = String(mf);   // always enabled, even at max 0 (D8)
       if (!dragging) seekEl.value = String(toFrame(t));
       playBtn.textContent = timer.running ? 'Pause' : 'Play';
+      rateEl.textContent = formatRate(timer.rate);
     }
     // Refresh every animation frame while running (R21); stop when paused.
     var ticking = false;
@@ -279,7 +401,7 @@
     function startTick() {
       if (timer.running && !ticking) { ticking = true; win.requestAnimationFrame(tick); }
     }
-    playBtn.addEventListener('click', function () { timer.toggle(now()); renderTimer(); startTick(); });
+    playBtn.addEventListener('click', function () { timer.toggle(now()); renderTimer(); startTick(); seekEl.focus(); });
     seekEl.addEventListener('pointerdown', function () { dragging = true; });
     win.addEventListener('pointerup', function () { dragging = false; });
     seekEl.addEventListener('input', function () {
@@ -385,6 +507,29 @@
     doc.addEventListener('selectionchange', function () { if (doc.activeElement === ta) checkActive(); });
     ta.addEventListener('blur', checkActive);
     win.addEventListener('resize', render);
+
+    // --- keyboard (behavior.md §6)
+    seekEl.addEventListener('keydown', function (e) {
+      var action = seekKeyAction(e);
+      if (action === null) return;
+      e.preventDefault();
+      if (action === 'switch') {
+        ta.focus();
+        if (savedCaret) ta.setSelectionRange(toOffset(savedCaret.a), toOffset(savedCaret.b), savedCaret.dir);
+        else ta.setSelectionRange(ta.value.length, ta.value.length);
+        checkActive();
+        return;
+      }
+      applySeekAction(timer, action, now());
+      renderTimer();
+      startTick();
+    });
+    ta.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab' || e.ctrlKey || e.altKey || e.metaKey) return;
+      e.preventDefault();
+      savedCaret = { a: toLineCol(ta.selectionStart), b: toLineCol(ta.selectionEnd), dir: ta.selectionDirection };
+      seekEl.focus();   // blur → checkActive → sort with no active line (O4)
+    });
     // Clicking the empty area beside/below the text focuses the end of the notepad.
     pad.addEventListener('mousedown', function (e) {
       if (e.target === ta) return;
@@ -406,6 +551,10 @@
     formatFrames: formatFrames,
     formatTime: formatTime,
     createTimer: createTimer,
+    stepRate: stepRate,
+    formatRate: formatRate,
+    seekKeyAction: seekKeyAction,
+    applySeekAction: applySeekAction,
     reconcile: reconcile,
     sortLines: sortLines,
     joinLines: joinLines,

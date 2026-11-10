@@ -16,6 +16,8 @@ body { display: flex; flex-direction: column; font-family: sans-serif; }
 #play { width: 5em; }
 #seek { flex: 1; min-width: 0; }
 .time { font-family: monospace; min-width: 11ch; text-align: center; }
+#rate { font-family: monospace; min-width: 5ch; text-align: right; }   /* fits "0.25×" */
+#seek:focus { outline: 2px solid #36c; outline-offset: 2px; }          /* D27: shown for mouse focus too */
 
 #pad { flex: 1; overflow-y: auto; }
 #sheet { display: flex; align-items: flex-start; min-height: 100%; }
