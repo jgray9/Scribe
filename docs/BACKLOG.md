@@ -20,3 +20,10 @@ Keep one idea per line. This file merges line by line across branches (see .gita
 - [ ] A shortcut help overlay, parked from `keybinds` on 2026-11-09
 - [ ] Speeds outside 0.25×–2×, or typing in a speed, parked from `keybinds` on 2026-11-09
 - [ ] Remember the speed across reloads, parked from `keybinds` on 2026-11-09
+- [ ] Replace a loaded video ("Open video" button), and click the video to play or pause, parked from `video-pane` on 2026-11-10
+- [ ] Drag and drop a file to open a video, parked from `video-pane` on 2026-11-10
+- [ ] Volume and mute controls for the video, parked from `video-pane` on 2026-11-10
+- [ ] Remember the opened video across reloads, parked from `video-pane` on 2026-11-10
+- [ ] A resizable divider between the video and notepad columns, parked from `video-pane` on 2026-11-10
+- [ ] Other video formats in the picker (.webm, .mov), parked from `video-pane` on 2026-11-10
+- [ ] Match the frame grid to the video's own frame rate (stamps stay at 30 fps), parked from `video-pane` on 2026-11-10
