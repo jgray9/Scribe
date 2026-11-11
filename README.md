@@ -58,4 +58,4 @@ It expects Chrome at `/usr/bin/google-chrome`.
 
 ## Docs
 
-Design docs are in [`docs/`](docs/README.md). [`docs/behavior.md`](docs/behavior.md) is the source of truth for how stamps and ordering work.
+[`docs/PRD.md`](docs/PRD.md) describes the product, its constraints and the features shipped so far. Each feature has a spec and a plan in `docs/features/<name>/`. The stamp and ordering rules are in the [`timed-notepad` spec](docs/features/timed-notepad/SPEC.md), with times moved to frames by [`frame-precision`](docs/features/frame-precision/SPEC.md). Parked ideas are in [`docs/BACKLOG.md`](docs/BACKLOG.md).

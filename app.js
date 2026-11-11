@@ -11,7 +11,7 @@
 
   var FPS = 30;   // fixed frame rate: 1 frame = 1/30 s = 100/3 ms
 
-  /** ms → integer frame, rounded down (behavior.md §1). */
+  /** ms → integer frame, rounded down (docs/features/frame-precision/SPEC.md, AC-1). */
   function toFrame(ms) { return Math.floor(Math.max(ms, 0) * 3 / 100); }
 
   /** First whole ms inside frame f. Integer maths: toFrame(frameStart(f)) === f. */
@@ -56,7 +56,7 @@
         this.base = Math.min(Math.max(ms, 0), hi);
         if (this.running) this.startedAt = now;
       },
-      /** Change speed without a jump: rebase at the old rate first (behavior.md §2). */
+      /** Change speed without a jump: rebase at the old rate first (docs/features/keybinds/SPEC.md, AC-3). */
       setRate: function (r, now) {
         if (this.running) { this.max(now); this.base = this.time(now); this.startedAt = now; }
         this.rate = r;
@@ -86,7 +86,7 @@
     PageUp: 'block', PageDown: 'block'
   };
 
-  /** Seek-bar keydown → action name, or null to leave the event alone (behavior.md §6). */
+  /** Seek-bar keydown → action name, or null to leave the event alone (docs/features/keybinds/SPEC.md). */
   function seekKeyAction(ev) {
     if (ev.ctrlKey || ev.altKey || ev.metaKey) return null;
     var k = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
@@ -119,7 +119,7 @@
   }
 
   /**
-   * Re-derive lines + stamps after an edit (behavior.md §3).
+   * Re-derive lines + stamps after an edit (docs/features/timed-notepad/SPEC.md, AC-13).
    * Unchanged prefix/suffix lines keep their objects. The first changed line
    * keeps its object and inherits the first stamp found in the old changed range.
    * Mutates reused line objects; returns a new array.
@@ -165,7 +165,7 @@
   function byStamp(a, b) { return a.stamp.f - b.stamp.f || a.stamp.seq - b.stamp.seq; }
 
   /**
-   * Sort stamped lines into the slots stamped lines occupy (behavior.md §4).
+   * Sort stamped lines into the slots stamped lines occupy (docs/features/timed-notepad/SPEC.md, AC-34).
    * Empty lines and the active line keep their positions.
    */
   function sortLines(lines, active) {
@@ -381,7 +381,7 @@
     var savedCaret = null;   // { a, b: {line, col}, dir } remembered when Tab leaves the notepad
 
     // --- timer UI
-    // The seek bar's unit is one frame (behavior.md §2); the timer itself stays in ms.
+    // The seek bar's unit is one frame (docs/features/frame-precision/SPEC.md, AC-3); the timer itself stays in ms.
     function renderTimer() {
       var n = now(), t = timer.time(n), m = timer.max(n);
       curEl.textContent = formatTime(t);
@@ -508,7 +508,7 @@
     ta.addEventListener('blur', checkActive);
     win.addEventListener('resize', render);
 
-    // --- keyboard (behavior.md §6)
+    // --- keyboard (docs/features/keybinds/SPEC.md)
     seekEl.addEventListener('keydown', function (e) {
       var action = seekKeyAction(e);
       if (action === null) return;
